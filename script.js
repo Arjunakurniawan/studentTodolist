@@ -1,82 +1,95 @@
 const input = document.getElementById("inputStudent");
-const btnAdd = document.getElementById("btnAdd");
+const btnSubmit = document.getElementById("btnSubmit");
 const btnCancel = document.getElementById("btnCancel");
 const ul = document.getElementById("listStudents");
 
-let index = null;
-let isEdit = false;
+let students = [];
+console.log(students);
 
-// localStorage
-let storage = localStorage.getItem("nameStudents")
-  ? JSON.parse(localStorage.getItem("nameStudents"))
-  : [];
+let editIndex = null;
 
-console.log(localStorage);
+// // localStorage
+// let storage = localStorage.getItem("nameStudents")
+//   ? JSON.parse(localStorage.getItem("nameStudents"))
+//   : [];
+
+const title = document.getElementById("titleUl");
 
 function render() {
-  const li = document.createElement("li");
-  const checkbox = document.createElement("input");
+  students.forEach((student, index) => {
+    const li = document.createElement("li");
 
-  // take value input
-  const valueInput = input.value;
+    const checkbox = document.createElement("input");
+    if (
+      (checkbox.onclick = function () {
+        li.style.textDecoration = "line-through";
+      })
+    ) {
+    }
 
-  const textSpan = document.createElement("span");
-  localStorage.setItem("nameStudents", JSON.stringify(valueInput));
-  textSpan.textContent = valueInput;
-  textSpan.className = "textSpan";
+    // styling in css
+    ul.style.display = "block";
+    li.style.display = "flex";
+    checkbox.type = "checkbox";
+    checkbox.id = "checkbox";
 
-  // styling in css
-  ul.style.display = "block";
-  li.style.display = "flex";
-  checkbox.type = "checkbox";
-  checkbox.id = "checkbox";
+    const btnDelete = document.createElement("button");
+    btnDelete.className = "button__delete";
+    btnDelete.textContent = "Delete";
+    btnDelete.remove;
 
-  const btnDelete = document.createElement("btnAdd");
-  btnDelete.className = "button__delete";
-  btnDelete.textContent = "Delete";
-  btnDelete.remove;
+    btnDelete.onclick = function () {
+      li.remove(index);
+      students.splice(index, 1);
+      console.log(students);
+    };
 
-  btnDelete.onclick = function () {
-    li.remove();
-  };
+    const btnEdit = document.createElement("button");
+    btnEdit.className = "button__edit";
+    btnEdit.textContent = "Edit";
 
-  const btnEdit = document.createElement("button");
-  btnEdit.className = "button__edit";
-  btnEdit.textContent = "Edit";
+    btnEdit.onclick = function () {
+      btnSubmit.textContent = "Save";
+      input.focus();
+      input.value = student.name;
+      editIndex = index;
+      students.map((student) => (student.isEdit = true));
+      console.table(students);
+    };
 
-  btnEdit.onclick = function () {
-    btnAdd.textContent = "Save";
-    input.focus();
-    index = textSpan;
-    input.value = textSpan.textContent;
-    isEdit = true;
-  };
-
-  // append element
-  ul.appendChild(li);
-  li.appendChild(checkbox);
-  li.append(btnDelete);
-  li.append(btnEdit);
-  li.append(textSpan);
+    // append element
+    ul.prepend(title);
+    ul.appendChild(li);
+    li.appendChild(checkbox);
+    li.append(document.createTextNode(student.name));
+    li.append(btnDelete);
+    li.append(btnEdit);
+  });
 }
 
-btnAdd.onclick = function () {
-  if (btnAdd.textContent === "add") {
+btnSubmit.onclick = function () {
+  ul.innerHTML = "";
+  if (btnSubmit.textContent === "add") {
     if (input.value === "") {
       alert("isi bidang ini!");
     } else {
-      localStorage.setItem("nameStudents", JSON.stringify(storage));
-      render(index);
+      students.push({ name: input.value, isEdit: false });
+      console.log(students);
+      render();
       input.value = "";
     }
-  } else if (btnAdd.textContent === "Save") {
-    if (index) {
-      onEditClick(index);
+  } else if (btnSubmit.textContent == "Save") {
+    if (editIndex !== null) {
+      onEditClick(editIndex);
       input.value = "";
+      btnSubmit.textContent = "add";
+      editIndex = null;
     }
   }
 };
 
-function onEditClick() {
-  index.textContent = input.value;
+function onEditClick(index) {
+  students[index].name = input.value;
+  editIndex = null;
+  render();
 }
