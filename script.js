@@ -2,116 +2,131 @@ const input = document.getElementById("inputStudent");
 const btnSubmit = document.getElementById("btnSubmit");
 const btnCancel = document.getElementById("btnCancel");
 const ul = document.getElementById("listStudents");
-
-// let students = [];
-console.log(students);
-
-let editIndex = null;
-
-// localStorage
-let storage = JSON.parse(localStorage.getItem("nameStudent")) || [];
-
-// fungsi untuk menyimpan data ke local storage
-function saveToLocalStorage() {
-  let names = students.map((student) => student.name);
-  localStorage.setItem("nameStudent", JSON.stringify(names));
-}
-
-// tag h3
 const title = document.getElementById("titleUl");
 
-// fungsi untuk menyimpan data
-function render() {
-  students.forEach((student, index) => {
+let states = {
+  students: JSON.parse(localStorage.getItem("studentName")) || "[]",
+  editIndex: null,
+};
+
+function saveToLocalStorage() {
+  localStorage.setItem("studentName", JSON.stringify(states.students));
+}
+
+function createCheckbox(student, index) {
+  const checkbox = document.createElement("input");
+  checkbox.checked = student.isCompleted;
+  checkbox.onclick = function (event) {
+    states.students[index].isCompleted = event.target.checked;
+    render();
+    saveToLocalStorage();
+  };
+  checkbox.type = "checkbox";
+  checkbox.id = "checkbox";
+
+  return checkbox;
+}
+
+function createText(student) {
+  const text = document.createElement("p");
+  text.textContent = student.name;
+  text.style.textDecoration = student.isCompleted ? "line-through" : "none";
+
+  return text;
+}
+
+function createButtonDelete(index) {
+  const btnDelete = document.createElement("button");
+  btnDelete.className = "button__delete";
+  btnDelete.textContent = "Delete";
+
+  btnDelete.onclick = function () {
+    states.students.splice(index, 1);
+    render();
+    saveToLocalStorage();
+  };
+
+  return btnDelete;
+}
+
+function createButtonEdit(index) {
+  const btnEdit = document.createElement("button");
+  btnEdit.className = "button__edit";
+  btnEdit.textContent = "Edit";
+
+  btnEdit.onclick = function () {
+    states.editIndex = index;
+    render();
+    saveToLocalStorage();
+  };
+
+  return btnEdit;
+}
+
+function renderStudentList() {
+  ul.innerHTML = "";
+  states.students.forEach((student, index) => {
+    const checkbox = createCheckbox(student, index);
     const li = document.createElement("li");
-
-    const checkbox = document.createElement("input");
-    checkbox.checked = student.isCompleted || false;
-    checkbox.onclick = function () {
-      if (checkbox.checked) {
-        li.style.textDecoration = "line-through";
-      } else {
-        li.style.textDecoration = "none";
-      }
-    };
-
-    li.style.textDecoration ? student.isCompleted : "line-through" || "none";
 
     // styling css
     ul.style.display = "block";
     li.style.display = "flex";
-    checkbox.type = "checkbox";
-    checkbox.id = "checkbox";
 
-    const btnDelete = document.createElement("button");
-    btnDelete.className = "button__delete";
-    btnDelete.textContent = "Delete";
-    btnDelete.remove;
-
-    btnDelete.onclick = function () {
-      li.remove(index);
-      students.splice(index, 1);
-      saveToLocalStorage();
-      console.log(students);
-    };
-
-    const btnEdit = document.createElement("button");
-    btnEdit.className = "button__edit";
-    btnEdit.textContent = "Edit";
-
-    btnEdit.onclick = function () {
-      btnSubmit.textContent = "Save";
-      input.focus();
-      input.value = student.name;
-      editIndex = index;
-      students.map((student) => (student.isEdit = true));
-      console.table(students);
-    };
-
-    // append element
     ul.prepend(title);
+    li.append(checkbox);
+    li.appendChild(createText(student));
+    li.appendChild(createButtonDelete(index));
+    li.appendChild(createButtonEdit(index))
     ul.appendChild(li);
-    li.appendChild(checkbox);
-    li.append(document.createTextNode(student.name));
-    li.append(btnDelete);
-    li.append(btnEdit);
+    
+    // if (!student.isCompleted) {
+    //   li.append(createButtonEdit(index));
+    // }
   });
 }
 
-// event handler button submit 2 fungsi
-btnSubmit.onclick = function () {
-  ul.innerHTML = "";
-  if (btnSubmit.textContent === "add") {
-    if (input.value === "") {
-      alert("isi bidang ini!");
+function EventOnClickButton() {
+  if (states.editIndex !== null) {
+    btnSubmit.textContent = "save";
+    input.focus();
+    input.value = states.students[states.editIndex].name;
+  } else {
+    btnSubmit.textContent = "add";
+    input.value = "";
+  }
+
+  btnSubmit.onclick = function (event) {
+    if (states.editIndex === null) {
+      if (input.value === "") {
+        alert("isi bidang ini!");
+      } else {
+        event.preventDefault();
+        states.students.push({ name: input.value, isCompleted: false });
+        render();
+        saveToLocalStorage();
+      }
     } else {
-      students.push({ name: input.value, isEdit: false, isCompleted: false });
-      console.log(students);
+      states.students[states.editIndex].name = input.value;
+      states.editIndex = null;
       render();
       saveToLocalStorage();
-      input.value = "";
     }
-  } else if (btnSubmit.textContent == "Save") {
-    if (editIndex !== null) {
-      onEditClick(editIndex);
-      input.value = "";
-      btnSubmit.textContent = "add";
-      saveToLocalStorage();
-      editIndex = null;
-    }
-  }
-};
-
-// fungsi untuk tombol cancel
-btnCancel.onclick = function () {
-  input.value = "";
-  btnSubmit.textContent = "Add";
-  editIndex = null;
-};
-
-// fungsi untuk perubahan edit
-function onEditClick(index) {
-  students[index].name = input.value;
-  editIndex = null;
-  render();
+  };
 }
+
+function render() {
+  renderStudentList();
+  EventOnClickButton();
+  EventButtonCancel();
+}
+
+function EventButtonCancel() {
+  btnCancel.onclick = function () {
+    input.value = "";
+    btnSubmit.textContent = "Add";
+    editIndex = null;
+  };
+}
+
+render();
